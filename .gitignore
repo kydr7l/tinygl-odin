@@ -8,3 +8,4 @@ lib/
 *.a
 *.lib
 *.dll
+!docs/sdl-window.png

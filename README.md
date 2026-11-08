@@ -2,6 +2,8 @@
 
 Odin bindings for [TinyGL](https://github.com/C-Chads/tinygl) (the C-Chads fork). TinyGL is a software rasterizer with an API like OpenGL 1.1. It draws into a memory buffer. You copy that buffer to a window, an image file, or a different output.
 
+![The SDL example: three gears in a window](docs/sdl-window.png)
+
 ## Build
 
 Clone the repository with its submodule:
