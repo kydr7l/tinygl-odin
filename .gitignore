@@ -1,0 +1,9 @@
+build/
+lib/
+*.png
+*.exe
+*.pdb
+*.obj
+*.o
+*.a
+*.lib
