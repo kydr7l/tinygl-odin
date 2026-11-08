@@ -10,13 +10,20 @@ SIZE :: 64
 // TinyGL has one global context, so only one test at a time can use it.
 gl_lock: sync.Mutex
 
+MODE :: tgl.ZB_MODE_5R6G5B when tgl.RENDER_BITS == 16 else tgl.ZB_MODE_RGBA
+
 // Open a SIZE×SIZE framebuffer and a GL context on it.
-open :: proc() -> ^tgl.ZBuffer {
+open :: proc(t: ^testing.T) -> (zb: ^tgl.ZBuffer, ok: bool) {
 	sync.mutex_lock(&gl_lock)
-	zb := tgl.ZB_open(SIZE, SIZE, tgl.ZB_MODE_5R6G5B when tgl.RENDER_BITS == 16 else tgl.ZB_MODE_RGBA, nil)
+	zb = tgl.ZB_open(SIZE, SIZE, MODE, nil)
+	if zb == nil {
+		sync.mutex_unlock(&gl_lock)
+		testing.expect(t, false, "ZB_open failed: -define:TINYGL_RENDER_BITS does not agree with zfeatures.h")
+		return nil, false
+	}
 	tgl.Init(zb)
 	tgl.Viewport(0, 0, SIZE, SIZE)
-	return zb
+	return zb, true
 }
 
 close :: proc(zb: ^tgl.ZBuffer) {
@@ -30,6 +37,25 @@ copy_pixels :: proc(zb: ^tgl.ZBuffer, buf: ^[SIZE * SIZE]tgl.PIXEL) {
 }
 
 @(test)
+test_render_bits_agree :: proc(t: ^testing.T) {
+	sync.mutex_lock(&gl_lock)
+	defer sync.mutex_unlock(&gl_lock)
+	zb := tgl.ZB_open(SIZE, SIZE, MODE, nil)
+	testing.expect(t, zb != nil, "ZB_open failed: -define:TINYGL_RENDER_BITS does not agree with zfeatures.h")
+	if zb != nil do tgl.ZB_close(zb)
+}
+
+@(test)
+test_texture_size_agrees :: proc(t: ^testing.T) {
+	zb, ok := open(t)
+	if !ok do return
+	defer close(zb)
+	size: tgl.GLint
+	tgl.GetIntegerv(tgl.MAX_TEXTURE_SIZE, &size)
+	testing.expectf(t, size == tgl.TEXTURE_DIM, "the library uses %d×%d textures, but TEXTURE_DIM is %d: -define:TINYGL_TEXTURE_POW2 does not agree with zfeatures.h", size, size, tgl.TEXTURE_DIM)
+}
+
+@(test)
 test_pixel_channels :: proc(t: ^testing.T) {
 	when tgl.RENDER_BITS == 32 {
 		testing.expect_value(t, tgl.GET_RED(0x123456), 0x12)
@@ -40,7 +66,8 @@ test_pixel_channels :: proc(t: ^testing.T) {
 
 @(test)
 test_clear_color_reaches_framebuffer :: proc(t: ^testing.T) {
-	zb := open()
+	zb, ok := open(t)
+	if !ok do return
 	defer close(zb)
 	tgl.ClearColor(1, 0, 0, 0)
 	tgl.Clear(tgl.COLOR_BUFFER_BIT | tgl.DEPTH_BUFFER_BIT)
@@ -54,7 +81,8 @@ test_clear_color_reaches_framebuffer :: proc(t: ^testing.T) {
 
 @(test)
 test_draw_text_writes_pixels :: proc(t: ^testing.T) {
-	zb := open()
+	zb, ok := open(t)
+	if !ok do return
 	defer close(zb)
 	tgl.ClearColor(0, 0, 0, 0)
 	tgl.Clear(tgl.COLOR_BUFFER_BIT)
@@ -68,7 +96,8 @@ test_draw_text_writes_pixels :: proc(t: ^testing.T) {
 
 @(test)
 test_post_process_changes_pixels :: proc(t: ^testing.T) {
-	zb := open()
+	zb, ok := open(t)
+	if !ok do return
 	defer close(zb)
 	tgl.ClearColor(0, 0, 0, 0)
 	tgl.Clear(tgl.COLOR_BUFFER_BIT)
@@ -214,7 +243,8 @@ test_link_all_procs :: proc(t: ^testing.T) {
 
 @(test)
 test_gears_draws_pixels :: proc(t: ^testing.T) {
-	zb := open()
+	zb, ok := open(t)
+	if !ok do return
 	defer close(zb)
 	gears.init(SIZE, SIZE)
 	gears.draw(0)

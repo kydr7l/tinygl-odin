@@ -10,6 +10,8 @@ TEXTURE_POW2 :: #config(TINYGL_TEXTURE_POW2, 8)
 TEXTURE_DIM  :: 1 << TEXTURE_POW2
 // Set to true when the library was built with the "openmp" build option.
 OPENMP       :: #config(TINYGL_OPENMP, false)
+// The OpenMP runtime on Linux: "gomp" for gcc, "omp" for clang.
+OPENMP_LIB   :: #config(TINYGL_OPENMP_LIB, "gomp")
 
 #assert(RENDER_BITS == 32 || RENDER_BITS == 16, "TINYGL_RENDER_BITS must be 16 or 32")
 
@@ -21,7 +23,7 @@ when ODIN_OS == .Windows {
 	}
 } else {
 	when OPENMP {
-		foreign import lib {"lib/libtinygl.a", "system:m", "system:gomp"}
+		foreign import lib {"lib/libtinygl.a", "system:m", "system:" + OPENMP_LIB}
 	} else {
 		foreign import lib {"lib/libtinygl.a", "system:m"}
 	}
@@ -68,7 +70,7 @@ foreign lib {
 	ZB_open            :: proc(xsize, ysize, mode: c.int, frame_buffer: rawptr) -> ^ZBuffer ---
 	ZB_close           :: proc(zb: ^ZBuffer) ---
 	ZB_resize          :: proc(zb: ^ZBuffer, frame_buffer: rawptr, xsize, ysize: GLint) ---
-	// linesize is in bytes.
+	// linesize is in bytes and must be xsize * size_of(PIXEL). TinyGL does not support a different row pitch.
 	ZB_copyFrameBuffer :: proc(zb: ^ZBuffer, buf: rawptr, linesize: GLint) ---
 }
 

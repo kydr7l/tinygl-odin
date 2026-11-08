@@ -45,6 +45,9 @@ main :: proc() {
 	}
 	gears.init(W, H)
 
+	pixels := make([]tgl.PIXEL, W * H)
+	defer delete(pixels)
+
 	for running := true; running; {
 		event: sdl.Event
 		for sdl.PollEvent(&event) {
@@ -58,12 +61,9 @@ main :: proc() {
 
 		gears.draw(f32(sdl.GetTicks()) * 0.07)
 
-		pixels: rawptr
-		pitch: i32
-		if sdl.LockTexture(texture, nil, &pixels, &pitch) {
-			tgl.ZB_copyFrameBuffer(zb, pixels, pitch)
-			sdl.UnlockTexture(texture)
-		}
+		// ZB_copyFrameBuffer needs a pitch of exactly W pixels, and the texture pitch can be larger.
+		tgl.ZB_copyFrameBuffer(zb, raw_data(pixels), W * size_of(tgl.PIXEL))
+		sdl.UpdateTexture(texture, nil, raw_data(pixels), W * size_of(tgl.PIXEL))
 		sdl.RenderTexture(renderer, texture, nil, nil)
 		sdl.RenderPresent(renderer)
 	}

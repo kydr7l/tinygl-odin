@@ -23,7 +23,7 @@ The build scripts accept these options, in any order:
 
 | Option   | Effect |
 |----------|--------|
-| `openmp` | Use OpenMP threads. Then pass `-define:TINYGL_OPENMP=true` to Odin. On Windows, `libomp.dll` (from LLVM) must be on the PATH. |
+| `openmp` | Use OpenMP threads. Then pass `-define:TINYGL_OPENMP=true` to Odin. On Linux with clang, also pass `-define:TINYGL_OPENMP_LIB=omp` (the default, `gomp`, is for gcc). On Windows, `libomp.dll` (from LLVM) must be on the PATH. |
 | `native` | Compile with `-march=native`. The library then works only on CPUs like the build machine. |
 | `debug`  | Compile with `-O0 -g`. |
 
@@ -60,7 +60,7 @@ odin run examples/x11     # X11 window (Linux only)
 
 - On Windows, the SDL example needs `SDL3.dll` next to the executable. Copy it from the `vendor/sdl3` folder of your Odin installation.
 - On Linux, the SDL example needs the SDL3 library of your system.
-- On Linux, the image example needs the stb libraries of Odin. If `vendor/stb/lib` in your Odin installation is empty, run `vendor/stb/src/build_stb.sh` from your Odin installation.
+- On Linux, the image example needs the stb libraries of Odin. If `vendor/stb/lib` in your Odin installation is empty, go to the `vendor/stb/src` folder of your Odin installation and run `./build_stb.sh`.
 
 ## Feature options
 
@@ -68,10 +68,10 @@ TinyGL sets its features at compile time in `zfeatures.h`. To change a feature, 
 
 Two features also change the Odin side. If you change one of them, pass the same value to Odin:
 
-| `zfeatures.h`              | Odin flag |
-|----------------------------|-----------|
-| `TGL_FEATURE_RENDER_BITS`  | `-define:TINYGL_RENDER_BITS=<16 or 32>` |
-| `TGL_FEATURE_TEXTURE_POW2` | `-define:TINYGL_TEXTURE_POW2=<n>` |
+| `zfeatures.h` | Odin flag |
+|---------------|-----------|
+| `TGL_FEATURE_16_BITS 1` and `TGL_FEATURE_32_BITS 0` | `-define:TINYGL_RENDER_BITS=16` |
+| `TGL_FEATURE_TEXTURE_POW2 <n>` | `-define:TINYGL_TEXTURE_POW2=<n>` |
 
 With 16-bit pixels, use `ZB_MODE_5R6G5B` in place of `ZB_MODE_RGBA`. To make sure that the values agree, run `odin test tests` with the same flags.
 
