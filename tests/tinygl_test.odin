@@ -3,6 +3,7 @@ package tinygl_tests
 import "core:sync"
 import "core:testing"
 import tgl ".."
+import "../examples/gears"
 
 SIZE :: 64
 
@@ -209,4 +210,17 @@ test_link_all_procs :: proc(t: ^testing.T) {
 	}
 	testing.expect_value(t, len(procs), 123)
 	for p in procs do testing.expect(t, p != nil)
+}
+
+@(test)
+test_gears_draws_pixels :: proc(t: ^testing.T) {
+	zb := open()
+	defer close(zb)
+	gears.init(SIZE, SIZE)
+	gears.draw(0)
+	buf: [SIZE * SIZE]tgl.PIXEL
+	copy_pixels(zb, &buf)
+	lit := 0
+	for p in buf do if p != 0 do lit += 1
+	testing.expectf(t, lit >= 100, "gears drew only %d pixels", lit)
 }
