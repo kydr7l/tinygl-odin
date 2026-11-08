@@ -7,3 +7,4 @@ lib/
 *.o
 *.a
 *.lib
+*.dll
