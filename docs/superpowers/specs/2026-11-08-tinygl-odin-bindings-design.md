@@ -66,7 +66,7 @@ The user wants OpenMP off by default, and wants users to be able to turn on Open
 - `openmp`: off by default. It compiles with `-fopenmp`. The Odin package then must link the OpenMP runtime. The package reads `#config(TINYGL_OPENMP, false)` for this.
 - `native`: off by default. It adds `-march=native`.
 - `debug`: off by default. It compiles with `-O0 -g` in place of `-O3 -DNDEBUG`.
-- `cc=<compiler>`: selects the C compiler. The default is `clang` on Windows and `cc` on Linux. On Windows, the compiler must make objects in the MSVC format.
+- The `CC` environment variable selects the C compiler. The default is `clang` on Windows and `cc` on Linux. On Windows, the compiler must make objects in the MSVC format. (Claude's call: an environment variable, not a `cc=` option, because a Windows batch file splits arguments at `=`.)
 - The feature options are in the repository `zfeatures.h`, as the section above says.
 
 ### Build (Claude's call)
